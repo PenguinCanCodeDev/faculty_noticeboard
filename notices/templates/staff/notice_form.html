@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="fixed inset-0 z-[60] flex h-screen w-full overflow-hidden bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
+    
+    <aside class="w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col shrink-0 hidden md:flex">
+        <div class="p-6 flex items-center gap-3 border-b border-slate-200 dark:border-slate-800">
+            <div class="bg-primary text-white p-2 rounded-lg">
+                <span class="material-symbols-outlined block">campaign</span>
+            </div>
+            <a href="{% url 'home' %}">
+                <h2 class="text-xl font-bold tracking-tight text-primary">NoticeAdmin</h2>
+            </a>
+        </div>
+        <nav class="flex-1 p-4 space-y-2">
+            <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">Notice Management</div>
+            <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 no-underline transition-colors" href="{% url 'staff_dashboard' %}">
+                <span class="material-symbols-outlined">dashboard</span>
+                <span class="text-sm font-medium">Dashboard</span>
+            </a>
+            <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary font-semibold no-underline" href="#">
+                <span class="material-symbols-outlined">add_circle</span>
+                <span class="text-sm font-medium">Create Notice</span>
+            </a>
+        </nav>
+    </aside>
+
+    <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <header class="h-16 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center px-8 z-10">
+            <h1 class="text-lg font-bold">New Publication</h1>
+        </header>
+
+        <main class="flex-1 overflow-y-auto p-6 md:p-10 bg-slate-50/50">
+            <div class="max-w-4xl mx-auto">
+                <div class="mb-8">
+                    <h1 class="text-3xl font-black tracking-tight text-slate-900">{{ title }}</h1>
+                    <p class="text-slate-500 mt-2">Draft and publish official communications to the faculty.</p>
+                </div>
+
+                <form method="POST" enctype="multipart/form-data" class="space-y-8">
+                    {% csrf_token %}
+
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-6">
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Notice Title</label>
+                            {{ form.title }}
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Category</label>
+                                {{ form.category }}
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Expiry Date</label>
+                                {{ form.expiry_date }}
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Notice Description</label>
+                            {{ form.body }}
+                        </div>
+                        <div class="flex items-center gap-3 pt-2">
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <div class="relative">
+                                    {{ form.is_important }}
+                                    <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+                                </div>
+                                <span class="ml-3 text-sm font-bold text-slate-700">Mark as Important</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <h3 class="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-primary">cloud_upload</span> 
+                            Document Library
+                        </h3>
+                        
+                        {{ formset.management_form }}
+                        <div id="file-form-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {% for file_form in formset %}
+                            <div class="file-form-item relative group transition-all">
+                                <div class="hidden">{{ file_form.file_name }}{{ file_form.id }}</div>
+
+                                <label class="relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 hover:bg-white hover:border-primary cursor-pointer transition-all">
+                                    <div class="flex flex-col items-center justify-center pt-5 pb-6 text-center px-4">
+                                        <span class="material-symbols-outlined text-slate-400 group-hover:text-primary mb-2">add_circle</span>
+                                        <p class="text-[10px] font-black uppercase text-slate-500 tracking-widest file-status">Click or Drop File</p>
+                                        <p class="file-name-display text-[11px] text-primary font-bold mt-1 truncate max-w-[180px]"></p>
+                                    </div>
+                                    <div class="opacity-0 absolute inset-0 cursor-pointer file-input-field">
+                                        {{ file_form.file }}
+                                    </div>
+                                </label>
+
+                                {% if formset.can_delete %}
+                                <div class="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity z-20 delete-file-btn">
+                                    <div class="bg-red-500 text-white rounded-full p-1 shadow-lg cursor-pointer flex items-center justify-center hover:bg-red-600 border-2 border-white">
+                                        {{ file_form.DELETE }}
+                                        <span class="material-symbols-outlined text-sm">close</span>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="bg-primary/5 p-6 rounded-xl border border-primary/10">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="material-symbols-outlined text-primary text-xl">lock</span>
+                            <label class="block text-sm font-bold text-primary">Set Access Password</label>
+                        </div>
+                        {{ form.view_password }}
+                    </div>
+
+                    <div class="flex items-center justify-end gap-4 pb-12">
+                        <a href="{% url 'staff_dashboard' %}" class="px-6 py-3 text-sm font-bold text-slate-500 no-underline">Cancel</a>
+                        <button type="submit" class="bg-primary text-white px-10 py-3 rounded-lg font-bold shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all">
+                            Post Notice
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script>
+document.addEventListener('change', function(e) {
+    if (e.target.closest('.file-input-field')) {
+        const input = e.target;
+        const file = input.files[0];
+        const container = input.closest('.file-form-item');
+        
+        if (file) {
+            container.querySelector('.file-status').innerText = "Ready";
+            container.querySelector('.file-name-display').innerText = file.name;
+            container.querySelector('label').classList.replace('bg-slate-50', 'bg-primary/5');
+            container.querySelector('label').classList.replace('border-slate-300', 'border-primary');
+
+            const allItems = document.querySelectorAll('.file-form-item');
+            const totalForms = document.getElementById('id_files-TOTAL_FORMS');
+            
+            if (container === allItems[allItems.length - 1]) {
+                const currentCount = parseInt(totalForms.value);
+                const newForm = container.cloneNode(true);
+                newForm.innerHTML = newForm.innerHTML.replace(new RegExp(`-${currentCount-1}-`, 'g'), `-${currentCount}-`);
+                newForm.innerHTML = newForm.innerHTML.replace(new RegExp(`_${currentCount-1}_`, 'g'), `_${currentCount}_`);
+                
+                const newInputs = newForm.querySelectorAll('input');
+                newInputs.forEach(i => { i.value = ''; i.checked = false; });
+                newForm.querySelector('.file-status').innerText = "Click or Drop File";
+                newForm.querySelector('.file-name-display').innerText = "";
+                newForm.querySelector('label').classList.remove('bg-primary/5', 'border-primary');
+                newForm.querySelector('label').classList.add('bg-slate-50', 'border-slate-300');
+
+                document.getElementById('file-form-list').appendChild(newForm);
+                totalForms.value = currentCount + 1;
+            }
+        }
+    }
+});
+
+document.addEventListener('click', function(e){
+
+    const deleteBtn = e.target.closest('.delete-file-btn');
+
+    if(deleteBtn){
+
+        const fileItem = deleteBtn.closest('.file-form-item');
+        const checkbox = fileItem.querySelector('input[type="checkbox"]');
+
+        if(checkbox){
+            checkbox.checked = true;
+        }
+
+        fileItem.style.display = 'none';
+
+    }
+
+});
+
+const importantCheckbox = document.querySelector('input[name="is_important"]');
+if (importantCheckbox) {
+    importantCheckbox.classList.add('sr-only', 'peer');
+}
+</script>
+
+<style>
+    input[type="text"], input[type="password"], input[type="date"], select, textarea {
+        width: 100%; border-radius: 0.5rem; border: 1px solid #e2e8f0; padding: 0.75rem 1rem;
+    }
+    textarea { min-height: 120px; }
+    input[type="checkbox"] { opacity: 0; position: absolute; width: 100%; height: 100%; cursor: pointer; }
+</style>
+{% endblock %}

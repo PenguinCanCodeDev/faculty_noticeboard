@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="flex items-center justify-center min-h-[75vh] px-4">
+    <div class="w-full max-w-[450px]">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+            
+            <div class="bg-primary p-10 text-center relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+                    <span class="material-symbols-outlined text-[150px] -rotate-12 translate-y-10">lock</span>
+                </div>
+                <div class="inline-flex items-center justify-center size-20 bg-white/10 backdrop-blur-md rounded-2xl mb-4 text-white shadow-inner">
+                    <span class="material-symbols-outlined text-4xl">admin_panel_settings</span>
+                </div>
+                <h2 class="text-2xl font-black text-white tracking-tight uppercase">Staff Portal</h2>
+                <p class="text-blue-200 text-xs font-bold tracking-widest mt-1">University of Benin Faculty Board</p>
+            </div>
+
+            <div class="p-8 sm:p-10">
+                <form method="POST" class="space-y-6">
+                    {% csrf_token %}
+                    
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Username</label>
+                        <div class="relative group">
+                            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors">person</span>
+                            <input type="text" name="username" required
+                                   class="w-full pl-12 pr-4 py-4 rounded-xl border-slate-200 bg-slate-50 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all font-medium" 
+                                   placeholder="Admin ID">
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Password</label>
+                        <div class="relative group">
+                            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors">key</span>
+                            <input type="password" name="password" required
+                                   class="w-full pl-12 pr-4 py-4 rounded-xl border-slate-200 bg-slate-50 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all" 
+                                   placeholder="••••••••">
+                        </div>
+                    </div>
+
+                    <button type="submit" 
+                            class="w-full py-4 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl shadow-xl shadow-primary/20 transition-all flex items-center justify-center gap-3 active:scale-[0.98]">
+                        <span>Authenticate</span>
+                        <span class="material-symbols-outlined text-xl">verified_user</span>
+                    </button>
+                </form>
+
+                {% if form.errors %}
+                <div class="mt-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-lg flex items-center gap-3">
+                    <span class="material-symbols-outlined text-red-500">error</span>
+                    <p class="text-xs font-bold text-red-700 uppercase">Invalid credentials provided.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="px-8 py-5 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800">
+                <a href="{% url 'home' %}" class="no-underline flex items-center justify-center gap-2 group">
+                    <span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">arrow_back</span>
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest group-hover:text-primary transition-colors">Return to Notice Board</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm border border-slate-200 mb-8">
+    <form method="GET" class="flex flex-col md:flex-row gap-4">
+        <div class="flex-1 relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                <span class="material-symbols-outlined">search</span>
+            </span>
+            <input name="q" value="{{ request.GET.q|default:'' }}" class="block w-full bg-slate-50 dark:bg-slate-800 border-slate-200 rounded-lg py-3 pl-10 pr-3 focus:ring-primary focus:border-primary" placeholder="Search notices by keyword...">
+        </div>
+        <div class="flex gap-2">
+            <select name="category" class="rounded-lg border-slate-200 bg-slate-50 dark:bg-slate-800 px-4 py-3 text-sm">
+                <option value="">All Categories</option>
+                {% for code, name in categories %}
+                    <option value="{{ code }}" {% if request.GET.category == code %}selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="px-6 py-2 bg-primary text-white rounded-lg font-bold hover:bg-primary/90 transition-colors">Search</button>
+        </div>
+    </form>
+</div>
+
+{% if request.GET.q or request.GET.category %}
+<div class="mb-8 flex items-center justify-between bg-primary/5 p-4 rounded-xl border border-primary/10">
+    <div class="flex items-center gap-2 text-primary">
+        <span class="material-symbols-outlined text-lg">manage_search</span>
+        <span class="text-sm font-medium">
+            Showing results for 
+            {% if request.GET.q %}"<span class="font-bold">{{ request.GET.q }}</span>"{% endif %}
+            {% if request.GET.category %} in <span class="font-bold">{{ request.GET.category }}</span>{% endif %}
+        </span>
+    </div>
+    <a href="{% url 'home' %}" class="text-xs font-bold text-primary hover:underline uppercase tracking-widest no-underline">Clear Search</a>
+</div>
+{% endif %}
+
+{% if not request.GET.q and not request.GET.category %}
+    {% for notice in notices %}
+        {% if notice.is_important and forloop.first %}
+        <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+            <span class="material-symbols-outlined text-accent-gold">campaign</span> Important Announcements
+        </h2>
+        <div class="mb-10 group overflow-hidden rounded-xl border-2 border-accent-gold bg-white shadow-lg p-6 lg:p-8 flex flex-col lg:flex-row gap-6">
+            <div class="flex-1">
+                <div class="flex items-center gap-3 mb-3">
+                    <span class="bg-accent-gold text-white text-[10px] font-bold uppercase px-2 py-1 rounded">Urgent</span>
+                    <span class="text-slate-500 text-sm">{{ notice.posted_date|date:"F d, Y" }}</span>
+                </div>
+                <h3 class="text-2xl font-bold text-primary mb-3">{{ notice.title }}</h3>
+                <p class="text-slate-600 mb-6 line-clamp-2">{{ notice.body }}</p>
+                <a href="{% url 'notice_detail' notice.pk %}" class="px-6 py-2 bg-primary text-white rounded-lg font-bold text-sm inline-block no-underline">Read Full Notice</a>
+            </div>
+        </div>
+        {% endif %}
+    {% endfor %}
+{% endif %}
+
+<h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+    <span class="material-symbols-outlined">list_alt</span> 
+    {% if request.GET.q or request.GET.category %} Search Results {% else %} Latest Notices {% endif %}
+</h2>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for notice in notices %}
+    <div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 flex flex-col hover:shadow-md transition-shadow group">
+        <div class="p-5 flex-1 flex flex-col">
+            <div class="flex items-center justify-between mb-4">
+                <span class="bg-blue-100 text-blue-700 text-[10px] font-bold uppercase px-2 py-1 rounded">{{ notice.get_category_display }}</span>
+                <span class="text-slate-400 text-xs">{{ notice.posted_date|timesince }} ago</span>
+            </div>
+            <h4 class="text-lg font-bold text-slate-900 mb-2 group-hover:text-primary transition-colors">{{ notice.title }}</h4>
+            <p class="text-slate-600 text-sm mb-4 line-clamp-3">{{ notice.body }}</p>
+            <div class="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
+                <div class="flex items-center gap-1 text-slate-400">
+                    {% if notice.files.all %}
+                        <span class="material-symbols-outlined text-lg">attach_file</span>
+                        <span class="text-xs">{{ notice.files.count }} Files</span>
+                    {% endif %}
+                </div>
+                <a href="{% url 'notice_detail' notice.pk %}" class="text-primary font-bold text-sm hover:underline no-underline">Read More</a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-span-full text-center py-20 bg-white rounded-xl border border-dashed border-slate-200">
+        <span class="material-symbols-outlined text-6xl text-slate-200 mb-4">search_off</span>
+        <p class="text-slate-500 font-medium">No notices found matching your search criteria.</p>
+        <a href="{% url 'home' %}" class="text-primary font-bold text-sm mt-4 inline-block underline">View all notices</a>
+    </div>
+    {% endfor %}
+</div>
+
+{% if notices.has_other_pages %}
+<div class="mt-12 flex justify-center">
+    <nav class="flex items-center gap-2">
+        {% if notices.has_previous %}
+        <a href="?page={{ notices.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}" 
+           class="p-2 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-primary transition-colors no-underline">
+            <span class="material-symbols-outlined">chevron_left</span>
+        </a>
+        {% endif %}
+
+        {% for num in notices.paginator.page_range %}
+            {% if notices.number == num %}
+                <span class="size-10 rounded-lg flex items-center justify-center bg-primary text-white font-bold text-sm">{{ num }}</span>
+            {% elif num > notices.number|add:'-3' and num < notices.number|add:'3' %}
+                <a href="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}" 
+                   class="size-10 rounded-lg flex items-center justify-center bg-white border border-slate-200 text-slate-600 hover:border-primary hover:text-primary font-bold text-sm no-underline transition-all">
+                    {{ num }}
+                </a>
+            {% endif %}
+        {% endfor %}
+
+        {% if notices.has_next %}
+        <a href="?page={{ notices.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}" 
+           class="p-2 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-primary transition-colors no-underline">
+            <span class="material-symbols-outlined">chevron_right</span>
+        </a>
+        {% endif %}
+    </nav>
+</div>
+{% endif %}
+
+{% endblock %}

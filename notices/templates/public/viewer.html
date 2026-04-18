@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% block title %}Faculty Reader | {{ file_name }}{% endblock %}
+
+{% block content %}
+<style>
+    /* 1. Hide everything by default when printing the main window */
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+        /* Only show the main document container if it's an image */
+        #printable-area, #printable-area * {
+            visibility: visible;
+        }
+        #printable-area {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="max-w-[1440px] mx-auto">
+    <header class="sticky top-16 z-40 w-full bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-sm mb-6">
+        <div class="px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <a href="{% url 'notice_detail' notice.id %}" class="flex items-center gap-2 text-slate-600 hover:text-primary no-underline transition-colors">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                    <span class="text-sm font-medium">Back to Notice</span>
+                </a>
+                <div class="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-2"></div>
+                <div class="flex items-center gap-3">
+                    <div class="bg-primary text-white p-1 rounded">
+                        <span class="material-symbols-outlined text-sm">description</span>
+                    </div>
+                    <h1 class="text-sm sm:text-base font-bold truncate max-w-[200px] md:max-w-md">{{ file_name }}</h1>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <button onclick="printDocument()" class="hidden sm:flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 rounded-lg">
+                    <span class="material-symbols-outlined">print</span> Print
+                </button>
+                
+                <a href="{{ file_url }}" download class="flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-bold rounded-lg shadow-md hover:opacity-90 no-underline">
+                    <span class="material-symbols-outlined text-sm">download</span>
+                    <span>Download PDF</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex flex-col lg:flex-row gap-8 pb-12">
+        <aside class="lg:w-72 shrink-0 no-print">
+            <div class="sticky top-32 space-y-6">
+                <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+                    <div class="p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">Document Library</h3>
+                    </div>
+                    <nav class="p-2 flex flex-col gap-1">
+                        <a href="{% url 'view_main' notice.id 'main' %}" 
+                           class="flex items-center gap-3 px-3 py-2.5 rounded-lg no-underline {% if file_type == 'main' %}bg-primary/10 text-primary font-semibold{% else %}text-slate-600 hover:bg-slate-50{% endif %}">
+                            <span class="material-symbols-outlined text-lg">home</span>
+                            <span class="text-sm">Main Report</span>
+                        </a>
+                        {% for item in notice.files.all %}
+                        <a href="{% url 'view_sub' notice.id 'sub' item.id %}" 
+                           class="flex items-center gap-3 px-3 py-2.5 rounded-lg no-underline {% if file_id == item.id %}bg-primary/10 text-primary font-semibold{% else %}text-slate-600 hover:bg-slate-50{% endif %}">
+                            <span class="material-symbols-outlined text-lg">description</span>
+                            <span class="text-sm">{{ item.file_name }}</span>
+                        </a>
+                        {% endfor %}
+                    </nav>
+                </div>
+                <div class="p-5 bg-primary/5 rounded-xl border border-primary/10">
+                    <h4 class="text-xs font-bold text-primary uppercase tracking-widest mb-3">Notice Context</h4>
+                    <div class="space-y-3">
+                        <div>
+                            <p class="text-[10px] text-slate-500 uppercase font-bold">Category</p>
+                            <p class="text-sm font-medium">{{ notice.get_category_display }}</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-slate-500 uppercase font-bold">Posted On</p>
+                            <p class="text-sm font-medium">{{ notice.posted_date|date:"M d, Y" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="flex-1 max-w-4xl mx-auto w-full">
+            <div id="printable-area" class="bg-white dark:bg-slate-900 shadow-xl border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden min-h-[90vh] flex flex-col">
+                
+                {% if is_image %}
+                    <div class="flex-1 bg-slate-100 flex items-center justify-center p-8">
+                        <img id="printable-image" src="{{ file_url }}" class="max-w-full h-auto shadow-lg rounded" alt="{{ file_name }}">
+                    </div>
+                {% else %}
+                    <iframe id="pdf-frame" src="{{ file_url }}#toolbar=0&navpanes=0&scrollbar=1" 
+                            class="flex-1 w-full border-0 min-h-[85vh]" 
+                            title="{{ file_name }}"></iframe>
+                {% endif %}
+                
+                <div class="px-8 py-6 bg-slate-50 border-t border-slate-100 flex justify-between items-center text-slate-400 no-print">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm">verified_user</span>
+                        <span class="text-[10px] uppercase font-bold tracking-widest">Faculty Official Portal</span>
+                    </div>
+                    <p class="text-[10px] font-mono">DOC-ID: {{ notice.id }}-{{ file_type }}</p>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script>
+    function printDocument() {
+        const frame = document.getElementById('pdf-frame');
+        const isImage = {% if is_image %}true{% else %}false{% endif %};
+
+        if (isImage) {
+            // If it's an image, we use the standard window.print() 
+            // The CSS @media print handles hiding the UI
+            window.print();
+        } else if (frame) {
+            // If it's a PDF in an iframe, we target the iframe specifically
+            try {
+                frame.contentWindow.focus();
+                frame.contentWindow.print();
+            } catch (e) {
+                // Fallback for cross-origin or restricted browsers
+                window.print();
+            }
+        }
+    }
+</script>
+{% endblock %}
