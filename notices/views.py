@@ -4,14 +4,14 @@ from django.forms import inlineformset_factory
 from django.core.paginator import Paginator
 from django.contrib import messages
 from .models import Notice, NoticeAttachment
-from .forms import NoticeForm
+from .forms import NoticeForm, NoticeAttachmentForm
 from django.utils import timezone
 from django.db.models import Q
 import os
 
 AttachmentFormSet = inlineformset_factory(
-    Notice, NoticeAttachment, 
-    fields=('file', 'file_name'), 
+    Notice, NoticeAttachment,
+    form=NoticeAttachmentForm,
     extra=1, can_delete=True
 )
 
